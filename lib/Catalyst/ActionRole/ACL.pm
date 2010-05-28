@@ -174,7 +174,7 @@ around execute => sub {
     my ($controller, $c) = @_;
 
     if ($c->user) {
-        if ($self->can_visit($c, $orig, $controller)) {
+        if ($self->can_visit($c, $controller)) {
             return $self->$orig(@_);
         }
     }
@@ -194,7 +194,7 @@ a given action.
 =cut
 
 sub can_visit {
-    my ($self, $c, $action, $controller) = @_;
+    my ($self, $c, $controller) = @_;
 
     my $user = $c->user;
 
@@ -212,7 +212,7 @@ sub can_visit {
     my $authzMethodAttr = $self->attributes->{AuthzValidateMethod};
     if( $authzMethodAttr ){
 	my $authzMethod = $authzMethodAttr->[0];
-	$controller->$authzMethod($user,$action,$c ) 
+	$controller->$authzMethod($user,$c ) 
 	    or return;
 
 	return 1 unless $usingRoles;
