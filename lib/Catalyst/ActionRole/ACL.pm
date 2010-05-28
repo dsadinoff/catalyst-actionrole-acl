@@ -147,9 +147,9 @@ after BUILD => sub {
 
     my $attr = $args->{attributes};
 
-    unless (exists $attr->{RequiresRole} || exists $attr->{AllowedRole}) {
+    unless (exists $attr->{RequiresRole} || exists $attr->{AllowedRole} || exists $attr->{AuthzValidateMethod}) {
         Catalyst::Exception->throw(
-            "Action '$args->{reverse}' requires at least one RequiresRole or AllowedRole attribute");
+            "Action '$args->{reverse}' requires at least one  RequiresRole, AllowedRole, AuthzValidateMethod attribute");
     }
     unless (exists $attr->{ACLDetachTo} && $attr->{ACLDetachTo}) {
         Catalyst::Exception->throw(
@@ -174,7 +174,7 @@ around execute => sub {
     my ($controller, $c) = @_;
 
     if ($c->user) {
-        if ($self->can_visit($c)) {
+        if ($self->can_visit($c, $orig, $controller)) {
             return $self->$orig(@_);
         }
     }
@@ -194,20 +194,33 @@ a given action.
 =cut
 
 sub can_visit {
-    my ($self, $c) = @_;
+    my ($self, $c, $action, $controller) = @_;
 
     my $user = $c->user;
 
     return unless $user;
 
-    return unless
-        $user->supports('roles') && $user->can('roles');
+    my $usingRoles = $user->supports('roles') && $user->can('roles');
+    my ($required, $allowed, %user_has);
+    if( $usingRoles ){
+        %user_has = map {$_,1} $user->roles;
 
-    my %user_has = map {$_,1} $user->roles;
+        $required = $self->attributes->{RequiresRole};
+	$allowed = $self->attributes->{AllowedRole};
+    }
+    use Data::Dumper;
+    my $authzMethodAttr = $self->attributes->{AuthzValidateMethod};
+    if( $authzMethodAttr ){
+	my $authzMethod = $authzMethodAttr->[0];
+	$controller->$authzMethod($user,$action,$c ) 
+	    or return;
 
-    my $required = $self->attributes->{RequiresRole};
-    my $allowed = $self->attributes->{AllowedRole};
+	return 1 unless $usingRoles;
 
+	if( ! ($required || $allowed)){
+	    return 1;
+	}
+    }
     if ($required && $allowed) {
         for my $role (@$required) {
             return unless $user_has{$role};
