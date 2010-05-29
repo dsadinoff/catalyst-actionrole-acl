@@ -3,7 +3,7 @@ use Moose::Role;
 use namespace::autoclean;
 
 use vars qw($VERSION);
-$VERSION = '0.05'; # REMEMBER TO BUMP VERSION IN Action::Role::ACL ALSO!
+$VERSION = '0.06'; # REMEMBER TO BUMP VERSION IN Action::Role::ACL ALSO!
 
 =head1 NAME
 
@@ -52,7 +52,7 @@ The name of an action to which the request should be detached if it is
 determined that ACLs are not satisfied for this user and the resource he
 is attempting to access.
 
-=head2 RequiresRole and AllowedRole
+=head2 RequiresRole, AllowedRole or AuthzValidateMethod
 
 The action must include at least one of these attributes, otherwise the Role::ACL
 constructor will throw an exception.
@@ -61,7 +61,7 @@ constructor will throw an exception.
 
 One or more roles may be associated with an action.
 
-User roles are fetched via the invocation of the context "user" object's "roles"
+User roles are fetched, if necessary, via the invocation of the context "user" object's "roles"
 method.
 
 Roles specified with the RequiresRole attribute are checked before roles
@@ -88,8 +88,8 @@ access is denied to one of the actions in the chain by its ACL.
  }
 
  This action will cause an exception because it's missing the ACLDetachTo attribute
- and has neither a RequiresRole nor an AllowedRole attribute. A Role::ACL action
- must include at least one RequiresRole or AllowedRole attribute.
+ and has none of the RequiresRole, AllowedRole, nor AuthzValidateMethod attributes. A Role::ACL action
+ must include at least one RequiresRole, AllowedRole or AuthzValidateMethod attribute.
 
  sub foo
  :Local
@@ -128,6 +128,50 @@ either the 'editor' or 'writer' role (or both).
  }
 
 Any user with either the 'admin' or 'user' role may execute this action.
+
+
+
+ sub complex :Local
+ :Does(ACL)
+ :AuthzValidateMethod(complexValidate)
+ :ACLDetachTo(denied)
+ {
+     my ($self, $c) = @_;
+     ...
+ }
+ 
+ sub complexValidate :Private
+ {
+     my ($self, $user, $c) = @_;
+     return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
+ } 
+
+This setup demonstrates how the "complex" action is only executed if
+the arbitrary "complexValidate" criterion is met.  Note that the User
+implementation need not support the "roles" feature if they are not used.
+
+
+
+ sub complex2 :Local
+ :Does(ACL)
+ :AuthzValidateMethod(complexValidate)
+ :AllowedRole(admin)
+ :ACLDetachTo(denied)
+ {
+     my ($self, $c) = @_;
+     ...
+ }
+ 
+ sub complexValidate :Private
+ {
+     my ($self, $user, $c) = @_;
+     return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
+ } 
+
+Here, complex2 is only executed if complexValidate returns true, AND the user
+has the 'admin' role.
+
+
 
 =head1 WRAPPED METHODS
 
@@ -208,7 +252,7 @@ sub can_visit {
         $required = $self->attributes->{RequiresRole};
 	$allowed = $self->attributes->{AllowedRole};
     }
-    use Data::Dumper;
+
     my $authzMethodAttr = $self->attributes->{AuthzValidateMethod};
     if( $authzMethodAttr ){
 	my $authzMethod = $authzMethodAttr->[0];
