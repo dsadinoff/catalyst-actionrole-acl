@@ -165,7 +165,7 @@ WRAPPED METHODS
 
     See Catalyst::Action
 
-  "can_visit( $c )"
+  "can_visit( $c, $controller )"
     Return true if the authenticated user can visit this action.
 
     This method is useful for determining in advance if a user can execute a
