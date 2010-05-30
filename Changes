@@ -1,3 +1,6 @@
+v0.06
+  - add AuthzValidateMethod
+
   - Documentation fixes (stephan48)
 
 v0.05  UNRELEASED

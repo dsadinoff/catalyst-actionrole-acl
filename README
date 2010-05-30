@@ -115,7 +115,7 @@ Processing of ACLs
 
      sub complex :Local
      :Does(ACL)
-     :AuthzValidateMethod(complexValidate)
+     :AuthzValidateMethod(complexValidate(hello there))
      :ACLDetachTo(denied)
      {
          my ($self, $c) = @_;
@@ -124,14 +124,15 @@ Processing of ACLs
      
  sub complexValidate :Private
      {
-         my ($self, $user, $c) = @_;
+         my ($self, $user, $c, $arg) = @_;
          return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
      }
 
     This setup demonstrates how the "complex" action is only executed if the
     arbitrary "complexValidate" criterion is met. Note that the User
     implementation need not support the "roles" feature if they are not
-    used.
+    used. In addition, an arbitrary string may be passed between parens
+    after the method name.
 
      sub complex2 :Local
      :Does(ACL)
