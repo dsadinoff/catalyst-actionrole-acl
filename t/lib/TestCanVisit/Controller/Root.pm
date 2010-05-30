@@ -16,7 +16,7 @@ sub access :Local {
 
     my $action_name = $c->req->params->{action_name};
     my $action = $c->dispatcher->get_action_by_path($action_name);
-    my $rc = $action->can_visit($c);
+    my $rc = $action->can_visit($c, $self);
 
     $c->res->body($rc ? 'yes' : 'no');
 }
@@ -35,11 +35,37 @@ sub read
     :ACLDetachTo(denied)
     { }
 
+sub readMysteriously
+    :Local
+    :Does('ACL')
+    :AuthzValidateMethod('evenName')
+    :ACLDetachTo(denied)
+    { }
+
+sub readMysteriouslyAsAdmin
+    :Local
+    :Does('ACL')
+    :AuthzValidateMethod('evenName')
+    :RequiresRole(admin)
+    :ACLDetachTo(denied)
+    { }
+
 sub denied :Private {
     my ($self, $c) = @_;
 
     $c->res->status(403);
     $c->res->body('access denied');
+}
+
+
+
+# An odd condition, which returns true under weird circumstances,
+# here, where ord(first letter of userid) is even
+sub evenName :Private{
+    my( $self, $user, $c) =  @_;
+
+    my $num = ord(substr($user->id,0,1));
+    return 0 == $num %2;
 }
 
 

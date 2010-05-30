@@ -228,7 +228,7 @@ around execute => sub {
     $c->detach($denied);
 };
 
-=head2 C<can_visit( $c )>
+=head2 C<can_visit( $c, $controller )>
 
 Return true if the authenticated user can visit this action.
 
@@ -239,6 +239,8 @@ a given action.
 
 sub can_visit {
     my ($self, $c, $controller) = @_;
+
+    die "you must pass in controller to can_visit" unless $controller;
 
     my $user = $c->user;
 

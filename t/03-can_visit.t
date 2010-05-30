@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 9;
 
 # setup library path
 use FindBin qw($Bin);
@@ -45,4 +45,27 @@ $user->roles(qw/user/);
 $action = 'read';
 $resp = get($query.$action);
 is($resp, 'yes', "user can visit 'read'");
+
+
+$user->roles(qw/user/);
+$action = 'read';
+$resp = get($query.$action);
+is($resp, 'yes', "user can visit 'read'");
+
+
+$user->roles(qw/none/);
+$action = 'readMysteriously';
+$resp = get($query.$action);
+is($resp, 'yes', "user jrandomuser can visit 'readMysteriously'");
+
+
+$user->roles(qw/user/);
+$action = 'readMysteriouslyAsAdmin';
+$resp = get($query.$action);
+is($resp, 'no', "user jrandomuser cannnot visit 'readMysteriouslyAsAdmin'");
+
+$user->id('imUnAuthorized');
+$action = 'readMysteriously';
+$resp = get($query.$action);
+is($resp, 'no', "user imUnAuthoprized cannot visit 'readMysteriously'");
 
