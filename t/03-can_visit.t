@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 # setup library path
 use FindBin qw($Bin);
@@ -64,8 +64,18 @@ $action = 'readMysteriouslyAsAdmin';
 $resp = get($query.$action);
 is($resp, 'no', "user jrandomuser cannnot visit 'readMysteriouslyAsAdmin'");
 
+
+
+$action = 'onlyShortUserIDs';
+$resp = get($query.$action);
+is($resp, 'yes', "user jrandomuser can visit 'onlyShortUserIDs'");
+
 $user->id('imUnAuthorized');
 $action = 'readMysteriously';
 $resp = get($query.$action);
 is($resp, 'no', "user imUnAuthoprized cannot visit 'readMysteriously'");
 
+
+$action = 'onlyShortUserIDs';
+$resp = get($query.$action);
+is($resp, 'no', "user imUnAuthorized cannot visit 'onlyShortUserIDs'");

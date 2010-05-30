@@ -130,10 +130,9 @@ either the 'editor' or 'writer' role (or both).
 Any user with either the 'admin' or 'user' role may execute this action.
 
 
-
  sub complex :Local
  :Does(ACL)
- :AuthzValidateMethod(complexValidate)
+ :AuthzValidateMethod(complexValidate(hello there))
  :ACLDetachTo(denied)
  {
      my ($self, $c) = @_;
@@ -142,13 +141,15 @@ Any user with either the 'admin' or 'user' role may execute this action.
  
  sub complexValidate :Private
  {
-     my ($self, $user, $c) = @_;
+     my ($self, $user, $c, $arg) = @_;
      return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
  } 
 
 This setup demonstrates how the "complex" action is only executed if
 the arbitrary "complexValidate" criterion is met.  Note that the User
 implementation need not support the "roles" feature if they are not used.
+In addition, an arbitrary string may be passed between parens after the method
+name.
 
 
 
@@ -257,8 +258,10 @@ sub can_visit {
 
     my $authzMethodAttr = $self->attributes->{AuthzValidateMethod};
     if( $authzMethodAttr ){
-	my $authzMethod = $authzMethodAttr->[0];
-	$controller->$authzMethod($user,$c ) 
+	my $authzMethodSpec = $authzMethodAttr->[0];
+	$authzMethodSpec =~ m{^ ( [\w:]+ ) \s* (?: \( (.*) \) )? \s* $}x or die "Authorizer Method poorly specified: $authzMethodSpec";
+	my ($authzMethod, $args) =  ($1, $2);
+	$controller->$authzMethod($user,$c, $args ) 
 	    or return;
 
 	return 1 unless $usingRoles;

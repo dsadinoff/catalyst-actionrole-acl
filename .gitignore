@@ -10,3 +10,4 @@ Makefile.old
 *.tar.gz
 *.tmp
 *.bak
+*~

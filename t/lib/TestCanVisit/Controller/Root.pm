@@ -50,13 +50,21 @@ sub readMysteriouslyAsAdmin
     :ACLDetachTo(denied)
     { }
 
+
+
+sub onlyShortUserIDs
+    :Local
+    :Does('ACL')
+    :AuthzValidateMethod('nameLengthLE(11)')
+    :ACLDetachTo(denied)
+    { }
+
 sub denied :Private {
     my ($self, $c) = @_;
 
     $c->res->status(403);
     $c->res->body('access denied');
 }
-
 
 
 # An odd condition, which returns true under weird circumstances,
@@ -67,6 +75,16 @@ sub evenName :Private{
     my $num = ord(substr($user->id,0,1));
     return 0 == $num %2;
 }
+
+
+
+# a parameterized condition, returns 
+sub nameLengthLE :Private{
+    my ($self, $user, $c, $arg) = @_;
+    die "couldn't parse  arg: $arg" unless $arg =~ m/^\s*\d+\s*$/;
+    return length($user->id) <= $arg;
+}
+
 
 
 __PACKAGE__->meta->make_immutable;
