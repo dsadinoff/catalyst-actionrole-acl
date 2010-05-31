@@ -55,7 +55,9 @@ sub readMysteriouslyAsAdmin
 sub onlyShortUserIDs
     :Local
     :Does('ACL')
-    :AuthzValidateMethod('nameLengthLE(11)')
+    :AuthzValidateMethod(nameLength)
+    :AuthzValidateArg(5)
+    :AuthzValidateArg(11)
     :ACLDetachTo(denied)
     { }
 
@@ -77,12 +79,14 @@ sub evenName :Private{
 }
 
 
-
+use Data::Dumper;
 # a parameterized condition, returns 
-sub nameLengthLE :Private{
+sub nameLength :Private{
     my ($self, $user, $c, $arg) = @_;
-    die "couldn't parse  arg: $arg" unless $arg =~ m/^\s*\d+\s*$/;
-    return length($user->id) <= $arg;
+    die "undef $arg" unless $arg;
+    my ($lowerBound, $upperBound) = @$arg;
+    return ($lowerBound <= length($user->id)) 
+	&& (length($user->id) <= $upperBound);
 }
 
 

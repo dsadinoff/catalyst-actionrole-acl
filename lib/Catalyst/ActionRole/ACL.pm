@@ -132,7 +132,9 @@ Any user with either the 'admin' or 'user' role may execute this action.
 
  sub complex :Local
  :Does(ACL)
- :AuthzValidateMethod(complexValidate(hello there))
+ :AuthzValidateMethod(complexValidate)
+ :AuthzValidateArg(hello)
+ :AuthzValidateArg(there)
  :ACLDetachTo(denied)
  {
      my ($self, $c) = @_;
@@ -141,7 +143,7 @@ Any user with either the 'admin' or 'user' role may execute this action.
  
  sub complexValidate :Private
  {
-     my ($self, $user, $c, $arg) = @_;
+     my ($self, $user, $c, $args) = @_;
      return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
  } 
 
@@ -258,10 +260,8 @@ sub can_visit {
 
     my $authzMethodAttr = $self->attributes->{AuthzValidateMethod};
     if( $authzMethodAttr ){
-	my $authzMethodSpec = $authzMethodAttr->[0];
-	$authzMethodSpec =~ m{^ ( [\w:]+ ) \s* (?: \( (.*) \) )? \s* $}x or die "Authorizer Method poorly specified: $authzMethodSpec";
-	my ($authzMethod, $args) =  ($1, $2);
-	$controller->$authzMethod($user,$c, $args ) 
+	my $authzMethod = $authzMethodAttr->[0];
+	$controller->$authzMethod($user,$c, $self->attributes->{AuthzValidateArg} ) 
 	    or return;
 
 	return 1 unless $usingRoles;
