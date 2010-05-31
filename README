@@ -115,7 +115,9 @@ Processing of ACLs
 
      sub complex :Local
      :Does(ACL)
-     :AuthzValidateMethod(complexValidate(hello there))
+     :AuthzValidateMethod(complexValidate)
+     :AuthzValidateArg(hello)
+     :AuthzValidateArg(there)
      :ACLDetachTo(denied)
      {
          my ($self, $c) = @_;
@@ -124,7 +126,7 @@ Processing of ACLs
      
  sub complexValidate :Private
      {
-         my ($self, $user, $c, $arg) = @_;
+         my ($self, $user, $c, $args) = @_;
          return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
      }
 
