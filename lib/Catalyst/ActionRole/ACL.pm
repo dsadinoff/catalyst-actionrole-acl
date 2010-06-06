@@ -132,9 +132,7 @@ Any user with either the 'admin' or 'user' role may execute this action.
 
  sub complex :Local
  :Does(ACL)
- :AuthzValidateMethod(complexValidate)
- :AuthzValidateArg(hello)
- :AuthzValidateArg(there)
+ :AuthzValidateMethod(complexValidate(hello,there))
  :ACLDetachTo(denied)
  {
      my ($self, $c) = @_;
@@ -143,8 +141,9 @@ Any user with either the 'admin' or 'user' role may execute this action.
  
  sub complexValidate :Private
  {
-     my ($self, $user, $c, $args) = @_;
-     return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
+     my ($self, $user, $c, $arg) = @_;
+     my @actualArgs = split /,/, $arg;
+     return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user, @actualArgs);
  } 
 
 This setup demonstrates how the "complex" action is only executed if
@@ -258,18 +257,17 @@ sub can_visit {
 	$allowed = $self->attributes->{AllowedRole};
     }
 
-    my $authzMethodAttr = $self->attributes->{AuthzValidateMethod};
-    if( $authzMethodAttr ){
-	my $authzMethod = $authzMethodAttr->[0];
-	$controller->$authzMethod($user,$c, $self->attributes->{AuthzValidateArg} ) 
-	    or return;
-
-	return 1 unless $usingRoles;
-
-	if( ! ($required || $allowed)){
-	    return 1;
+    my $authzMethodAttrList = $self->attributes->{AuthzValidateMethod};
+    if( $authzMethodAttrList ){
+	for my $authzMethodAttr (@$authzMethodAttrList ){
+	    my ($authzMethod, $arg) = $authzMethodAttr =~ m/^\s* (\w+) \s* (?: \( ( .* ) \) )? \s*$ /x;
+	    $controller->$authzMethod($user,$c, $arg ) 
+		or return;
 	}
+
+	return 1 unless $usingRoles && ($required || $allowed);
     }
+
     if ($required && $allowed) {
         for my $role (@$required) {
             return unless $user_has{$role};

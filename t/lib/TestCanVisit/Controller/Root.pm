@@ -55,9 +55,7 @@ sub readMysteriouslyAsAdmin
 sub onlyShortUserIDs
     :Local
     :Does('ACL')
-    :AuthzValidateMethod(nameLength)
-    :AuthzValidateArg(5)
-    :AuthzValidateArg(11)
+    :AuthzValidateMethod(nameLength(5,11))
     :ACLDetachTo(denied)
     { }
 
@@ -84,7 +82,7 @@ use Data::Dumper;
 sub nameLength :Private{
     my ($self, $user, $c, $arg) = @_;
     die "undef $arg" unless $arg;
-    my ($lowerBound, $upperBound) = @$arg;
+    my ($lowerBound, $upperBound) = split(/,/,$arg);
     return ($lowerBound <= length($user->id)) 
 	&& (length($user->id) <= $upperBound);
 }

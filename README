@@ -115,9 +115,7 @@ Processing of ACLs
 
      sub complex :Local
      :Does(ACL)
-     :AuthzValidateMethod(complexValidate)
-     :AuthzValidateArg(hello)
-     :AuthzValidateArg(there)
+     :AuthzValidateMethod(complexValidate(hello,there))
      :ACLDetachTo(denied)
      {
          my ($self, $c) = @_;
