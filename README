@@ -121,11 +121,12 @@ Processing of ACLs
          my ($self, $c) = @_;
          ...
      }
-     
- sub complexValidate :Private
+ 
+     sub complexValidate :Private
      {
-         my ($self, $user, $c, $args) = @_;
-         return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
+         my ($self, $user, $c, $arg) = @_;
+         my @actualArgs = split /,/, $arg;
+         return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user, @actualArgs);
      }
 
     This setup demonstrates how the "complex" action is only executed if the
@@ -143,8 +144,8 @@ Processing of ACLs
          my ($self, $c) = @_;
          ...
      }
-     
- sub complexValidate :Private
+ 
+     sub complexValidate :Private
      {
          my ($self, $user, $c) = @_;
          return userHasPaidDuesAndIsGenerallyTrustworthyThisTimeOfDay($user);
