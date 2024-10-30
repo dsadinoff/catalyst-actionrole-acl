@@ -3,7 +3,7 @@ use Moose::Role;
 use namespace::autoclean;
 
 use vars qw($VERSION);
-$VERSION = '0.05_03'; # REMEMBER TO BUMP VERSION IN Action::Role::ACL ALSO!
+$VERSION = '0.05_04'; # REMEMBER TO BUMP VERSION IN Action::Role::ACL ALSO!
 
 =head1 NAME
 
@@ -193,10 +193,13 @@ after BUILD => sub {
 
     my $attr = $args->{attributes};
 
+    return if exists $attr->{Private};
+
     unless (exists $attr->{RequiresRole} || exists $attr->{AllowedRole} || exists $attr->{AuthzValidateMethod}) {
         Catalyst::Exception->throw(
             "Action '$args->{reverse}' requires at least one  RequiresRole, AllowedRole, AuthzValidateMethod attribute");
     }
+
     unless (exists $attr->{ACLDetachTo} && $attr->{ACLDetachTo}) {
         Catalyst::Exception->throw(
             "Action '$args->{reverse}' requires the ACLDetachTo(<action>) attribute");
